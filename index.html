@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تنبؤ أداء الطالب</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <style>
+        @keyframes gradient {
+            0% {background-position: 0% 50%;}
+            50% {background-position: 100% 50%;}
+            100% {background-position: 0% 50%;}
+        }
+
+        body {
+            font-family: 'Tajawal', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 90%;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo svg {
+            width: 100px;
+            height: 100px;
+            transition: transform 0.3s ease;
+        }
+
+        .logo svg:hover {
+            transform: scale(1.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 30px;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        #result {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+        }
+
+        .error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="45" fill="#007bff" />
+                <path d="M30 70 L50 30 L70 70 Z" fill="white" />
+                <circle cx="50" cy="20" r="8" fill="white" />
+            </svg>
+        </div>
+        <h1>تنبؤ أداء الطالب</h1>
+        <form id="predictionForm">
+            <label for="Age">العمر:</label>
+            <input type="number" id="Age" name="Age" min="15" max="18" required>
+            
+            <label for="Gender">الجنس:</label>
+            <select id="Gender" name="Gender" required>
+                <option value="0">ذكر</option>
+                <option value="1">أنثى</option>
+            </select>
+            
+            <label for="Ethnicity">العرق:</label>
+            <select id="Ethnicity" name="Ethnicity" required>
+                <option value="0">قوقازي</option>
+                <option value="1">أفريقي أمريكي</option>
+                <option value="2">آسيوي</option>
+                <option value="3">آخر</option>
+            </select>
+            
+            <label for="ParentalEducation">مستوى تعليم الوالدين:</label>
+            <select id="ParentalEducation" name="ParentalEducation" required>
+                <option value="0">لا يوجد</option>
+                <option value="1">ثانوي</option>
+                <option value="2">بعض الدراسة الجامعية</option>
+                <option value="3">بكالوريوس</option>
+                <option value="4">أعلى</option>
+            </select>
+            
+            <label for="StudyTimeWeekly">وقت الدراسة الأسبوعي (بالساعات):</label>
+            <input type="number" id="StudyTimeWeekly" name="StudyTimeWeekly" min="0" max="20" step="0.5" required>
+            
+            <label for="Absences">عدد مرات الغياب:</label>
+            <input type="number" id="Absences" name="Absences" min="0" max="30" required>
+            
+            <label for="Tutoring">الحصول على دروس خصوصية:</label>
+            <select id="Tutoring" name="Tutoring" required>
+                <option value="0">لا</option>
+                <option value="1">نعم</option>
+            </select>
+            
+            <label for="ParentalSupport">مستوى دعم الوالدين:</label>
+            <select id="ParentalSupport" name="ParentalSupport" required>
+                <option value="0">لا يوجد</option>
+                <option value="1">منخفض</option>
+                <option value="2">متوسط</option>
+                <option value="3">عالي</option>
+                <option value="4">عالي جدًا</option>
+            </select>
+            
+            <label for="Extracurricular">المشاركة في أنشطة لا منهجية:</label>
+            <select id="Extracurricular" name="Extracurricular" required>
+                <option value="0">لا</option>
+                <option value="1">نعم</option>
+            </select>
+            
+            <label for="Sports">المشاركة في الأنشطة الرياضية:</label>
+            <select id="Sports" name="Sports" required>
+                <option value="0">لا</option>
+                <option value="1">نعم</option>
+            </select>
+            
+            <label for="Music">المشاركة في الأنشطة الموسيقية:</label>
+            <select id="Music" name="Music" required>
+                <option value="0">لا</option>
+                <option value="1">نعم</option>
+            </select>
+            
+            <label for="Volunteering">المشاركة في العمل التطوعي:</label>
+            <select id="Volunteering" name="Volunteering" required>
+                <option value="0">لا</option>
+                <option value="1">نعم</option>
+            </select>
+            
+            <button type="submit">تنبؤ</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const searchParams = new URLSearchParams();
+
+            for (const [key, value] of formData.entries()) {
+                searchParams.append(key, value);
+            }
+
+            try {
+                const response = await axios.get('http://127.0.0.1:8080/predict?' + searchParams.toString());
+                document.getElementById('result').innerHTML = 'الدرجة المتوقعة: ' + response.data['الدرجة المتوقعة'];
+                document.getElementById('result').classList.remove('error');
+                document.getElementById('result').style.backgroundColor = '#d4edda';
+                document.getElementById('result').style.color = '#155724';
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = 'حدث خطأ أثناء التنبؤ. يرجى المحاولة مرة أخرى.';
+                document.getElementById('result').classList.add('error');
+            }
+        });
+    </script>
+</body>
+</html>
